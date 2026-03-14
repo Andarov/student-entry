@@ -3,8 +3,7 @@ const AppSettings = {
     viloyatlar: [
         {
             name: "Xorazm viloyati",
-            password: "123", /* SHU YERDA PAROLNI O'ZGARTIRASIZ */
-            // Ushbu viloyat uchun GAS Web App URli (yangi doPost API)
+            password: "123", 
             scriptUrl: "https://script.google.com/macros/s/AKfycbyhgrwvQu_N0zKNJYM1lXP9Axp0fUrT4OiAuNlv8UhRsPgyRA7pyBC5rCDLbiU9h5oNtg/exec",
             tumans: [
                 "Urganch shahri", "Urganch tumani", "Bog'ot", "Gurlan", "Qo'shko'pir", "Shovot", "Xonqa", "Xiva shahri", "Xiva tumani", "Yangiariq", "Yangibozor", "Hazorasp", "Tuproqqal'a"
@@ -15,8 +14,8 @@ const AppSettings = {
         },
         {
             name: "Buxoro viloyati",
-            password: "123",
-            scriptUrl: "https://script.google.com/macros/s/AKfycby.../exec",
+            password: "345",
+            scriptUrl: "https://script.google.com/macros/s/AKfycbxxb2DMjMY90cCzP0zQvhU52Y7i-xbeJZBbsA-4QS7t69SUuIymy0_pcMcQwcMjM5aV/exec",
             tumans: [
                 "Buxoro shahri", "Buxoro tumani", "Vobkent", "G'ijduvon", "Jondor", "Kogon shahri", "Kogon tumani", "Olot", "Peshku", "Romitan", "Qorovulbozor", "Qorako'l", "Shofirkon"
             ],
