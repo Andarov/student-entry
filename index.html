@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O'quvchi Ro'yxatga Olish v3</title>
+    <!-- Google Fonts ishlatamiz zamonaviy ko'rinish uchun -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body id="body">
+
+<div id="loader"><div class="spinner"></div></div>
+
+<!-- LOGIN SEKSIYASI -->
+<div id="loginSection" class="container login-container" style="max-width: 450px;">
+    <div class="card">
+        <h2 class="title">🔐 Tizimga Kirish</h2>
+        <div class="form-group">
+            <label>Viloyat Dasturi</label>
+            <select id="loginViloyat" class="form-input">
+                <option value="">-- Viloyatni tanlang --</option>
+            </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 25px;">
+            <label>Parol</label>
+            <input type="password" id="loginPassword" placeholder="Parolingizni kiriting..." onkeypress="if(event.key === 'Enter') login()">
+        </div>
+        <button class="btn btn-blue" style="width: 100%;" onclick="login()">KIRISH</button>
+        <div id="loginError" style="color: #ef4444; font-size: 13px; margin-top: 15px; text-align: center; display: none; font-weight: 600;">
+            Parol noto'g'ri yoki viloyat tanlanmadi!
+        </div>
+    </div>
+</div>
+
+<!-- ASOSIY DASTUR SEKSIYASI -->
+<div id="appSection" class="container" style="display: none;">
+    
+    <div class="top-nav">
+        <h2>📍 Hudud: <span id="activeViloyatName"></span></h2>
+        <button class="btn btn-orange" style="padding: 10px 20px; font-size: 12px;" onclick="logout()">CHIQQISH 🔒</button>
+    </div>
+
+    <!-- Filtrlar -->
+    <div class="card search-card">
+        <div class="title">🔍 FILTR VA QIDIRUV</div>
+        <div class="grid">
+            <div class="form-group"><label>Tuman</label><input type="text" id="fTuman" placeholder="Tumanni tanlang..."><div class="dropdown-box"></div></div>
+            <div class="form-group"><label>Maktab</label><input type="text" id="fSchool" placeholder="Maktabni tanlang..." disabled><div class="dropdown-box"></div></div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <label>O'QUVCHINI ISMI YORDAMIDA QIDIRISH</label>
+                <div class="search-group-inline">
+                    <input type="text" id="nSearch" style="flex: 1;" placeholder="Ism familiyani kiriting..." onkeypress="if(event.key === 'Enter') search()">
+                    <button class="btn btn-orange" onclick="search()">IZLASH 🔍</button>
+                </div>
+            </div>
+        </div>
+        <div id="resCount" style="margin-top: 15px; font-size: 14px; font-weight: 600; color: var(--accent);"></div>
+    </div>
+
+    <div class="card" id="comBox">
+        <div class="title">🏢 ASOSIY HUDUD VA OPERATOR</div>
+        <div class="grid">
+            <div class="form-group"><label>Tuman</label><input type="text" id="cTuman" placeholder="Tumanni tanlang..."><div class="dropdown-box"></div></div>
+            <div class="form-group"><label>Maktab</label><input type="text" id="cSchool" placeholder="Maktabni tanlang..."><div class="dropdown-box"></div></div>
+            <div class="form-group"><label>Operator</label><input type="text" id="cOp" placeholder="Operatorni tanlang..."><div class="dropdown-box"></div></div>
+        </div>
+    </div>
+
+    <div id="stCont"></div>
+
+    <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 60px;">
+        <button class="btn btn-green" id="addBtn" onclick="addForm()">+ YANGI O'QUVCHI QO'SHISH</button>
+        <button class="btn btn-blue" id="saveBtn" onclick="submit('save')" style="font-size: 16px; padding: 18px;">BARCHASINI SAQLASH ✅</button>
+        <button class="btn btn-orange" id="updBtn" style="display:none; font-size: 16px; padding: 18px;" onclick="submit('update')">O'ZGARISHLARNI SAQLASH 💾</button>
+    </div>
+</div>
+
+<template id="stTemp">
+    <div class="card student-card">
+        <div class="title">👤 O'QUVCHI MA'LUMOTLARI</div>
+        <input type="hidden" class="hidden-tuman">
+        <input type="hidden" class="hidden-school">
+        <input type="hidden" class="hidden-operator">
+        
+        <div class="grid">
+            <div class="form-group"><label>Ism Familiyasi</label><input type="text" class="name" placeholder="Masalan: Eshmatov Toshmat"></div>
+            <div class="form-group"><label>Yo'nalish</label><input type="text" class="direction" placeholder="Yo'nalishni tanlang..."><div class="dropdown-box"></div></div>
+            <div class="form-group"><label>Telefon 1</label><input type="tel" class="tel1" placeholder="+998 (__) ___-__-__"></div>
+            <div class="form-group"><label>Telefon 2</label><input type="tel" class="tel2" placeholder="+998 (__) ___-__-__"></div>
+            <div class="form-group"><label>Ta'lim shakli</label><input type="text" class="form" placeholder="Shaklni tanlang..."><div class="dropdown-box"></div></div>
+            <div class="form-group"><label>Pasport</label><input type="text" class="ps" placeholder="AA 1234567"></div>
+            <div class="form-group"><label>Tug'ilgan sana</label><input type="date" class="bDate"></div>
+            <div class="form-group"><label>JSHSHIR</label><input type="text" class="jsh" placeholder="14 xonali raqam" maxlength="14"></div>
+            <div class="form-group"><label>Ball</label><input type="number" step="0.1" class="score" placeholder="0.0"></div>
+            <div class="form-group"><label>Telegram</label><input type="text" class="tg" placeholder="@username"></div>
+        </div>
+        <label class="confirm-wrapper">
+            <input type="checkbox" class="isConf"> <span>Barcha ma'lumotlar to'g'ri ekanligini tasdiqlayman</span>
+        </label>
+    </div>
+</template>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
