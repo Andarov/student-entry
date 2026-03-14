@@ -1,5 +1,5 @@
 // Bu kodni har bir viloyatning Google Apps Script loyihasiga kiritasiz.
-// U tashqi saytdan kelgan so'rovlarni qabul qilib, Sheets'ga yozadi.
+// U tashqi saytdan kelgan so'rovlarni qabul qilib, Sheets'ga yozadi va Settings ni qaytaradi.
 
 function doPost(e) {
   try {
@@ -8,7 +8,9 @@ function doPost(e) {
     const action = payload.action;
 
     let result = {};
-    if (action === "save") {
+    if (action === "getSettings") {
+      result = getSettingsFromSheet(payload.password);
+    } else if (action === "save") {
       result = saveStudentsToSheet(payload.data);
     } else if (action === "update") {
       result = updateStudentsBulk(payload.data);
@@ -31,8 +33,46 @@ function doOptions(e) {
     .setMimeType(ContentService.MimeType.TEXT);
 }
 
+// --- YANGI: SETTINGS VARAG'IDAN O'QISH FUNKSIYASI (PAROL BILAN) ---
+function getSettingsFromSheet(providedPassword) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let settingsSheet = ss.getSheetByName("Settings");
+    if(!settingsSheet) {
+      throw new Error("Settings nomli varaq topilmadi!");
+    }
+    const data = settingsSheet.getDataRange().getValues();
+    
+    // F2 katagidagi parol (1-qator bu sarlavha, 2-qator dataning 1-elemeni (index 1), F ustun (index 5))
+    // Agar F2 da parol bo'lmasa, bo'sh parol deb qabul qilinadi
+    const sheetPassword = String(data[1] && data[1][5] ? data[1][5] : "").trim();
+    
+    if (sheetPassword !== "" && providedPassword !== sheetPassword) {
+       return { success: false, error: "Parol noto'g'ri!" };
+    }
 
-// --- AVVALGI FUNKSIYALAR (Qayta ishlangan variantlari) ---
+    data.shift(); // 1-qator (sarlavhalar) kerak emas
+
+    const res = { tumans: [], schools: [], directions: [], forms: [], operators: [] };
+    
+    // operator array ga parolni qoshib qoymaslik uchun:
+    // data[0] - bu ro'yxatning 1-elementi (qator 2)
+    // data[1], data[2] ...
+    
+    data.forEach((row, index) => {
+      if(row[0] && row[0] !== "") res.tumans.push(String(row[0]).trim());
+      if(row[1] && row[1] !== "") res.schools.push(String(row[1]).trim());
+      if(row[2] && row[2] !== "") res.directions.push(String(row[2]).trim());
+      if(row[3] && row[3] !== "") res.forms.push(String(row[3]).trim());
+      if(row[4] && row[4] !== "") res.operators.push(String(row[4]).trim());
+    });
+    return { success: true, data: res };
+  } catch (e) {
+    return { success: false, error: e.toString() }; 
+  }
+}
+
+// --- AVVALGI FUNKSIYALAR ---
 
 function searchStudentByFilter(nameQuery, tuman, school) {
   try {

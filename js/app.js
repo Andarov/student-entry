@@ -1,9 +1,10 @@
 let mData = AppSettings;
 let isEdit = false;
 let activeRegion = null;
+let activeSettings = null; // Tumanlar, maktablar, boshqalar saqlanadi
 
 window.onload = () => {
-    document.body.classList.add('login-body'); // Login uchun maxsus background
+    document.body.classList.add('login-body'); // Login
     const viloyatSelect = document.getElementById('loginViloyat');
     mData.viloyatlar.forEach((v, index) => {
         let opt = document.createElement('option');
@@ -26,25 +27,48 @@ function login() {
     }
 
     const region = mData.viloyatlar[regionIndex];
-    if(region.password === pwd) {
-        // Muvaffaqiyatli kirish
-        activeRegion = region;
-        err.style.display = "none";
-        
-        document.body.classList.remove('login-body');
-        document.getElementById('loginSection').style.display = "none";
-        document.getElementById('appSection').style.display = "block";
-        document.getElementById('activeViloyatName').innerText = region.name;
+    // 1. Tizimga kirishdan oldin API'dan Settings'larni tortamiz, va u yerdan parolni ham tekshiramiz
+    setLoad(true);
+    fetchSettingsFromAPI(region, pwd);
+}
 
-        initializeApp();
-    } else {
-        err.innerText = "Parol noto'g'ri!";
-        err.style.display = "block";
-    }
+function fetchSettingsFromAPI(region, pwd) {
+    fetch(region.scriptUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'text/plain;charset=utf-8',
+        },
+        body: JSON.stringify({ action: 'getSettings', password: pwd })
+    })
+    .then(res => res.json())
+    .then(res => {
+        setLoad(false);
+        if(res.success) {
+            // Ma'lumotlar keldi
+            activeRegion = region;
+            activeSettings = res.data; // { tumans, schools, directions, forms, operators }
+            
+            document.body.classList.remove('login-body');
+            document.getElementById('loginSection').style.display = "none";
+            document.getElementById('appSection').style.display = "block";
+            document.getElementById('activeViloyatName').innerText = region.name;
+            
+            initializeApp();
+        } else {
+            // Parol noto"g"ri bo"lsa yoki boshqa xatolik
+            document.getElementById('loginError').innerText = res.error || "Xatolik yuz berdi!";
+            document.getElementById('loginError').style.display = "block";
+        }
+    })
+    .catch(err => {
+        setLoad(false);
+        alert("Server bilan bo'g'lanishda xatolik: " + err.toString());
+    });
 }
 
 function logout() {
     activeRegion = null;
+    activeSettings = null;
     document.getElementById('loginPassword').value = '';
     
     document.body.classList.add('login-body');
@@ -57,20 +81,19 @@ function logout() {
 
 function initializeApp() {
     initFilter();
-    // Tuman va Operatorlarni endi aktiv viloyatning tumans va operatorsidan oladi
-    initDrop(document.getElementById('cTuman'), activeRegion.tumans);
-    initDrop(document.getElementById('cSchool'), mData.schools);
+    initDrop(document.getElementById('cTuman'), activeSettings.tumans);
+    initDrop(document.getElementById('cSchool'), activeSettings.schools);
     document.getElementById('cOp').value = ""; // Eskisini tozalash
-    initDrop(document.getElementById('cOp'), activeRegion.operators);
+    initDrop(document.getElementById('cOp'), activeSettings.operators);
     addForm();
 }
 
 function initFilter() {
     document.getElementById('fTuman').value = "";
     document.getElementById('fSchool').value = "";
-    initDrop(document.getElementById('fTuman'), activeRegion.tumans, (v) => {
+    initDrop(document.getElementById('fTuman'), activeSettings.tumans, (v) => {
         document.getElementById('fSchool').disabled = false;
-        initDrop(document.getElementById('fSchool'), mData.schools);
+        initDrop(document.getElementById('fSchool'), activeSettings.schools);
     });
 }
 
@@ -149,8 +172,8 @@ function addForm() {
     const cont = document.getElementById('stCont');
     cont.appendChild(document.getElementById('stTemp').content.cloneNode(true));
     const last = cont.lastElementChild;
-    initDrop(last.querySelector('.direction'), mData.directions);
-    initDrop(last.querySelector('.form'), mData.forms);
+    initDrop(last.querySelector('.direction'), activeSettings.directions);
+    initDrop(last.querySelector('.form'), activeSettings.forms);
     applyMasks(last);
 }
 
