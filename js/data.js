@@ -6,19 +6,19 @@ const AppSettings = {
         },
         {
             name: "Buxoro viloyati",
-            scriptUrl: "https://script.google.com/macros/s/AKfycbxxb2DMjMY90cCzP0zQvhU52Y7i-xbeJZBbsA-4QS7t69SUuIymy0_pcMcQwcMjM5aV/exec"
+            scriptUrl: "https://script.google.com/macros/s/AKfycbxmBhwcyjwmnxOynmCeO1BFU6wdLpuvtKbE2GLtYGwla7wEkRiLzyIjxIRlTzomeLnL/exec"
         },
         {
             name: "Navoiy viloyati",
-            scriptUrl: "https://script.google.com/macros/s/AKfycby.../exec"
+            scriptUrl: "https://script.google.com/macros/s/AKfycbwF-nJM1WVqbiMn6D88ckmZSZNg_fd13aYsLezzeEbHSEUw2SSlYwaV6m-247juFSsm/exec"
         },
         {
             name: "Samarqand viloyati",
-            scriptUrl: "https://script.google.com/macros/s/AKfycby.../exec"
+            scriptUrl: "https://script.google.com/macros/s/AKfycbyTUS66INt6rwZVCPDg1gxD0YJL0-KkPZMtpSPKHT1NO6GXTvoeUTnhKm73d-da65MZag/exec"
         },
         {
             name: "Sirdaryo viloyati",
-            scriptUrl: "https://script.google.com/macros/s/AKfycby.../exec"
+            scriptUrl: "https://script.google.com/macros/s/AKfycbxLPlXf88zKU5Em_ipQhwzz6_EZp_HN8qN1fq6AD6JyukpO60P-EQxDzBxG8NNcXMGWOQ/exec"
         }
     ]
 };
