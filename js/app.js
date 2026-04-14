@@ -114,8 +114,10 @@ function applyMasks(card) {
         };
         t.oninput = (e) => {
             let v = e.target.value;
-            if (v.length < 5) {
-               if (!v.startsWith('+998')) e.target.value = '+998 ';
+            // Minimal qiymat: +998 dan qisqa bo'lsa tiklash
+            if (v.length < 5 || !v.startsWith('+998')) {
+               e.target.value = '+998 ';
+               setCursor(e.target);
                return;
             }
             let num = v.replace(/\D/g, '');
@@ -123,8 +125,10 @@ function applyMasks(card) {
             let res = '+998';
             if(num.length > 0) res += ' (' + num.substring(0, 2);
             if(num.length >= 2) res += ') ' + num.substring(2, 5);
-            if(num.length >= 5) res += '-' + num.substring(5, 7);
-            if(num.length >= 7) res += '-' + num.substring(7, 9);
+            const p1 = num.substring(5, 7);
+            if(p1) res += '-' + p1;
+            const p2 = num.substring(7, 9);
+            if(p2) res += '-' + p2;
             e.target.value = res;
         };
     });
@@ -143,8 +147,15 @@ function applyMasks(card) {
         if(!e.target.value) e.target.value = '@';
         setCursor(e.target);
     };
-    tg.oninput = (e) => { 
-        if(!e.target.value.startsWith('@')) e.target.value = '@' + e.target.value.replace(/@/g, ''); 
+    tg.oninput = (e) => {
+        const v = e.target.value;
+        // Minimal qiymat: @ belgisidan kam bo'lmasin
+        if (!v || v.length === 0) {
+            e.target.value = '@';
+            setCursor(e.target);
+            return;
+        }
+        if (!v.startsWith('@')) e.target.value = '@' + v.replace(/@/g, '');
     };
 }
 
@@ -239,34 +250,68 @@ function search() {
 
 function submit(mode) {
     setLoad(true);
+
     const cards = Array.from(document.querySelectorAll('.student-card'));
+
+    // ── Barcha kartalar uchun validatsiya ──────────────────────
+    const MIN = 3;
+    const telLocalDigits = v => v.replace(/\D/g, '').replace(/^998/, '');
+
+    const FIELDS = [
+        { sel: '.name',      label: "Ism Familiyasi",   check: v => v.trim().length >= MIN },
+        { sel: '.direction', label: "Yo'nalish",         check: v => v.trim().length >= MIN },
+        { sel: '.tel1',      label: "Telefon 1",         check: v => telLocalDigits(v).length >= MIN },
+        { sel: '.tel2',      label: "Telefon 2",         check: v => telLocalDigits(v).length >= MIN },
+        { sel: '.form',      label: "Ta'lim shakli",     check: v => v.trim().length >= MIN },
+        { sel: '.ps',        label: "Pasport",           check: v => v.trim().length >= MIN },
+        { sel: '.bDate',     label: "Tug'ilgan sana",    check: v => v.trim().length > 0 },
+        { sel: '.jsh',       label: "JSHSHIR",           check: v => v.trim().length >= MIN },
+        { sel: '.tg',        label: "Telegram",          check: v => v.trim().length >= MIN },
+        // .score — validatsiyadan ozod
+    ];
+
+    for (const c of cards) {
+        for (const f of FIELDS) {
+            const inp = c.querySelector(f.sel);
+            if (!f.check(inp.value)) {
+                alert(`⚠️ "${f.label}" maydonini to'liq kiriting!`);
+                setLoad(false);
+                inp.focus();
+                return;
+            }
+        }
+    }
+    // ──────────────────────────────────────────────────────────
+
+    // Ixtiyoriy maydonlarni tozalash (faqat prefix/@ bo'lsa bo'sh)
+    const cleanTel = v => telLocalDigits(v).length > 0 ? v : '';
+    const cleanTg  = v => (v && v !== '@' && v.length > 1) ? v : '';
+
     const data = cards.map(c => ({
         rowIndex: c.dataset.id,
         student: {
-            name: c.querySelector('.name').value,
+            name:      c.querySelector('.name').value,
             direction: c.querySelector('.direction').value,
-            tel1: c.querySelector('.tel1').value,
-            tel2: c.querySelector('.tel2').value,
-            form: c.querySelector('.form').value,
-            passport: c.querySelector('.ps').value,
+            tel1:      c.querySelector('.tel1').value,
+            tel2:      c.querySelector('.tel2').value,
+            form:      c.querySelector('.form').value,
+            passport:  c.querySelector('.ps').value,
             birthDate: c.querySelector('.bDate').value,
-            jshshir: c.querySelector('.jsh').value,
-            score: c.querySelector('.score').value,
-            tgUser: c.querySelector('.tg').value,
-            tuman: isEdit ? c.querySelector('.hidden-tuman').value : document.getElementById('cTuman').value,
-            school: isEdit ? c.querySelector('.hidden-school').value : document.getElementById('cSchool').value,
+            jshshir:   c.querySelector('.jsh').value,
+            score:     c.querySelector('.score').value,
+            tgUser:    c.querySelector('.tg').value,
+            tuman:    isEdit ? c.querySelector('.hidden-tuman').value : document.getElementById('cTuman').value,
+            school:   isEdit ? c.querySelector('.hidden-school').value : document.getElementById('cSchool').value,
             operator: isEdit ? c.querySelector('.hidden-operator').value : document.getElementById('cOp').value,
             isConfirmed: c.querySelector('.isConf').checked
         }
     }));
-    
-    // Validatsiya qismi qisqacha
-    let hasError = false;
-    if(mode === 'save') {
+
+    // Hudud/Operator validatsiyasi (faqat yangi qo'shishda)
+    if (mode === 'save') {
         const cTum = document.getElementById('cTuman').value;
-        const cOp = document.getElementById('cOp').value;
-        if(!cTum || !cOp) {
-            hasError = true;
+        const cOp  = document.getElementById('cOp').value;
+        if (!cTum || !cOp) {
             alert("Iltimos, avval Asosiy Hudud va Operatorni tanlang!");
             setLoad(false);
             return;
@@ -275,29 +320,27 @@ function submit(mode) {
 
     const payload = {
         action: mode === 'save' ? 'save' : 'update',
-        data: mode === 'save' ? data.map(x => x.student) : data
+        data:   mode === 'save' ? data.map(x => x.student) : data
     };
 
     fetch(activeRegion.scriptUrl, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'text/plain;charset=utf-8',
-        },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
     })
     .then(res => res.json())
     .then(res => {
         setLoad(false);
-        if(res.success) { 
-            alert("Ma'lumotlar muvaffaqiyatli saqlandi! ✅"); 
-            resetApp(); 
+        if (res.success) {
+            alert("Ma'lumotlar muvaffaqiyatli saqlandi! ✅");
+            resetApp();
         } else {
             alert("Xatolik: " + res.error);
         }
     })
     .catch(err => {
         setLoad(false);
-        alert("Server bilan bo'g'lanishda xatolik yuz berdi: " + err.toString());
+        alert("Server bilan bog'lanishda xatolik yuz berdi: " + err.toString());
     });
 }
 

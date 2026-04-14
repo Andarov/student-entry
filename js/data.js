@@ -9,6 +9,10 @@ const AppSettings = {
             scriptUrl: "https://script.google.com/macros/s/AKfycbxmBhwcyjwmnxOynmCeO1BFU6wdLpuvtKbE2GLtYGwla7wEkRiLzyIjxIRlTzomeLnL/exec"
         },
         {
+            name: "Buxoro viloyati 2",
+            scriptUrl: "https://script.google.com/macros/s/AKfycbxmLNp7JNszefElceun07Y24mmamg6KIdjWOFiVf2VBioGpoTeFeQ-4r_GAU_PRqnhq/exec"
+        },
+        {
             name: "Navoiy viloyati",
             scriptUrl: "https://script.google.com/macros/s/AKfycbwF-nJM1WVqbiMn6D88ckmZSZNg_fd13aYsLezzeEbHSEUw2SSlYwaV6m-247juFSsm/exec"
         },
