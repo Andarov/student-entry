@@ -226,16 +226,22 @@ function search() {
                 card.querySelector('.hidden-tuman').value = r.student.tuman;
                 card.querySelector('.hidden-school').value = r.student.school;
                 card.querySelector('.hidden-operator').value = r.student.operator;
-                card.querySelector('.name').value = r.student.name;
-                card.querySelector('.direction').value = r.student.direction;
-                card.querySelector('.tel1').value = r.student.tel1;
-                card.querySelector('.tel2').value = r.student.tel2;
-                card.querySelector('.form').value = r.student.form;
-                card.querySelector('.ps').value = r.student.passport;
-                card.querySelector('.bDate').value = r.student.birthDate;
-                card.querySelector('.jsh').value = r.student.jshshir;
-                card.querySelector('.score').value = r.student.score;
-                card.querySelector('.tg').value = r.student.tgUser;
+                // Qiymatlarni yuklash + prev holatini saqlash
+                const setVal = (sel, val) => {
+                    const el = card.querySelector(sel);
+                    el.value = val || '';
+                    el.dataset.original = val || ''; // prev holat
+                };
+                setVal('.name',      r.student.name);
+                setVal('.direction', r.student.direction);
+                setVal('.tel1',      r.student.tel1);
+                setVal('.tel2',      r.student.tel2);
+                setVal('.form',      r.student.form);
+                setVal('.ps',        r.student.passport);
+                setVal('.bDate',     r.student.birthDate);
+                setVal('.jsh',       r.student.jshshir);
+                setVal('.score',     r.student.score);
+                setVal('.tg',        r.student.tgUser);
                 card.querySelector('.isConf').checked = r.student.status === "Tasdiqlandi";
             });
         } else {
@@ -252,36 +258,44 @@ function submit(mode) {
     setLoad(true);
 
     const cards = Array.from(document.querySelectorAll('.student-card'));
-
-    // ── Barcha kartalar uchun validatsiya ──────────────────────
-    const MIN = 3;
     const telLocalDigits = v => v.replace(/\D/g, '').replace(/^998/, '');
 
-    const FIELDS = [
-        { sel: '.name',      label: "Ism Familiyasi",   check: v => v.trim().length >= MIN },
-        { sel: '.direction', label: "Yo'nalish",         check: v => v.trim().length >= MIN },
-        { sel: '.tel1',      label: "Telefon 1",         check: v => telLocalDigits(v).length >= MIN },
-        { sel: '.tel2',      label: "Telefon 2",         check: v => telLocalDigits(v).length >= MIN },
-        { sel: '.form',      label: "Ta'lim shakli",     check: v => v.trim().length >= MIN },
-        { sel: '.ps',        label: "Pasport",           check: v => v.trim().length >= MIN },
-        { sel: '.bDate',     label: "Tug'ilgan sana",    check: v => v.trim().length > 0 },
-        { sel: '.jsh',       label: "JSHSHIR",           check: v => v.trim().length >= MIN },
-        { sel: '.tg',        label: "Telegram",          check: v => v.trim().length >= MIN },
-        // .score — validatsiyadan ozod
-    ];
+    // ── Update rejimida: prev qiymat bor edi → min 3 talab ─────
+    if (mode === 'update') {
+        const MIN = 3;
+        const FIELDS = [
+            { sel: '.name',      label: "Ism Familiyasi",  isTel: false },
+            { sel: '.direction', label: "Yo'nalish",        isTel: false },
+            { sel: '.tel1',      label: "Telefon 1",        isTel: true  },
+            { sel: '.tel2',      label: "Telefon 2",        isTel: true  },
+            { sel: '.form',      label: "Ta'lim shakli",    isTel: false },
+            { sel: '.ps',        label: "Pasport",          isTel: false },
+            { sel: '.bDate',     label: "Tug'ilgan sana",   isTel: false },
+            { sel: '.jsh',       label: "JSHSHIR",          isTel: false },
+            { sel: '.tg',        label: "Telegram",         isTel: false },
+        ];
 
-    for (const c of cards) {
-        for (const f of FIELDS) {
-            const inp = c.querySelector(f.sel);
-            if (!f.check(inp.value)) {
-                alert(`⚠️ "${f.label}" maydonini to'liq kiriting!`);
-                setLoad(false);
-                inp.focus();
-                return;
+        for (const c of cards) {
+            for (const f of FIELDS) {
+                const inp = c.querySelector(f.sel);
+                const original = inp.dataset.original || '';
+                // Prev holatda qiymat YO'Q edi → validatsiya shart emas
+                if (!original.trim()) continue;
+
+                // Prev holatda qiymat BOR edi → min 3 ta belgi talab
+                const cur = inp.value;
+                const len = f.isTel ? telLocalDigits(cur).length : cur.trim().length;
+                if (len < MIN) {
+                    alert(`⚠️ "${f.label}" maydonini to'liq kiriting!`);
+                    setLoad(false);
+                    inp.focus();
+                    return;
+                }
             }
         }
     }
-    // ──────────────────────────────────────────────────────────
+    // ── Save rejimida: hech qanday validatsiya yo'q ─────────────
+
 
     // Ixtiyoriy maydonlarni tozalash (faqat prefix/@ bo'lsa bo'sh)
     const cleanTel = v => telLocalDigits(v).length > 0 ? v : '';
