@@ -108,27 +108,13 @@ function applyMasks(card) {
     };
 
     tels.forEach(t => {
-        t.onfocus = (e) => {
-            if(!e.target.value) e.target.value = '+998 ';
-            setCursor(e.target);
-        };
         t.oninput = (e) => {
-            let v = e.target.value;
-            // Minimal qiymat: +998 dan qisqa bo'lsa tiklash
-            if (v.length < 5 || !v.startsWith('+998')) {
-               e.target.value = '+998 ';
-               setCursor(e.target);
-               return;
-            }
-            let num = v.replace(/\D/g, '');
-            if(num.startsWith('998')) num = num.substring(3);
-            let res = '+998';
-            if(num.length > 0) res += ' (' + num.substring(0, 2);
-            if(num.length >= 2) res += ') ' + num.substring(2, 5);
-            const p1 = num.substring(5, 7);
-            if(p1) res += '-' + p1;
-            const p2 = num.substring(7, 9);
-            if(p2) res += '-' + p2;
+            let v = e.target.value.replace(/\D/g, '').slice(0, 9);
+            let res = '';
+            if (v.length > 0) res += v.substring(0, 2);
+            if (v.length > 2) res += '-' + v.substring(2, 5);
+            if (v.length > 5) res += '-' + v.substring(5, 7);
+            if (v.length > 7) res += '-' + v.substring(7, 9);
             e.target.value = res;
         };
     });
@@ -142,6 +128,16 @@ function applyMasks(card) {
     };
 
     card.querySelector('.jsh').oninput = (e) => e.target.value = e.target.value.replace(/\D/g, '').slice(0, 14);
+
+    const bDate = card.querySelector('.bDate');
+    bDate.oninput = (e) => {
+        let v = e.target.value.replace(/\D/g, '').slice(0, 8);
+        let res = '';
+        if (v.length > 0) res += v.substring(0, 4);
+        if (v.length > 4) res += '.' + v.substring(4, 6);
+        if (v.length > 6) res += '.' + v.substring(6, 8);
+        e.target.value = res;
+    };
     
     tg.onfocus = (e) => {
         if(!e.target.value) e.target.value = '@';
@@ -258,7 +254,7 @@ function submit(mode) {
     setLoad(true);
 
     const cards = Array.from(document.querySelectorAll('.student-card'));
-    const telLocalDigits = v => v.replace(/\D/g, '').replace(/^998/, '');
+    const telLocalDigits = v => v.replace(/\D/g, '').slice(0, 9);
 
     // ── Update rejimida: prev qiymat bor edi → min 3 talab ─────
     if (mode === 'update') {
